@@ -14,6 +14,7 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.svm import SVC
 
 
+# HOla
 
 #Parsetja el fitxer xml i recupera la informació necessaria per trobar la cara de l'animal
 #
