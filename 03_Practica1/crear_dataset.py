@@ -1,12 +1,18 @@
 import os
+import time
 from matplotlib import pyplot as plt
 import numpy as np
 import xml.etree.ElementTree as etree
 import skimage
 from skimage.io import imread
 from skimage.transform import resize
+from sklearn.preprocessing import StandardScaler
 
-# https://www.kaggle.com/datasets/andrewmvd/dog-and-cat-detection/code
+# Importar librerías necesarias:
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.svm import SVC
+
 
 
 #Parsetja el fitxer xml i recupera la informació necessaria per trobar la cara de l'animal
@@ -88,7 +94,6 @@ def obtenirHoG(imagen, ppc = (4, 4), cpb = (2, 2), o = 9):
                                                      pixels_per_cell=ppc, 
                                                      cells_per_block= cpb, 
                                                      orientations = o,       # Sirve para dividir el rango de ángulos en subrangos
-                                                     block_norm ='L2-Hys',   # Sirve para normalizar los bloques
                                                      feature_vector = True,  # Devuelve un vector de características
                                                      visualize = True)       # Devuelve la imagen HoG
     
@@ -111,7 +116,8 @@ def configuracionsHoG(imatges):
     # Definir las configuraciones de HoG:
     hog_configs = [
         {'ppc': (4, 4), 'cpb': (2, 2), 'o': 9},
-        {'ppc': (8, 8), 'cpb': (2, 2), 'o': 9},
+        {'ppc': (4, 4), 'cpb': (8, 8), 'o': 9},
+        {'ppc': (6, 6), 'cpb': (2, 2), 'o': 9},
         {'ppc': (8, 8), 'cpb': (4, 4), 'o': 12}
     ]
     
@@ -119,9 +125,8 @@ def configuracionsHoG(imatges):
     for config in hog_configs:
         
         features_list = []
-        
-        #for i in range(imatges.shape[2]): # Iterar sobre todas las imágenes
-        for i in range(2):  
+        for i in range(imatges.shape[2]): # Iterar sobre todas las imágenes
+        #for i in range(3):  
             # Obtener características HoG para cada imagen
             caracteristiques = obtenirHoG(imatges[:,:,i], 
                                           ppc = config['ppc'], 
@@ -135,22 +140,69 @@ def configuracionsHoG(imatges):
         
         # Guardar las características de cada configuración en un archivo
         filename = f"caracteristiques_hog_ppc{config['ppc'][0]}_cpb{config['cpb'][0]}_o{config['o']}.npy"
-        np.save(filename, caracteristiques_hog)
+        #np.save(filename, caracteristiques_hog)
         print(f"Guardadas todas las características en {filename}")
 
+def entrenamiento_SVM():
+    """ Función para entrenar un modelo SVM con diferentes kernels. """
 
+    caracteristicas = np.load("caracteristiques_hog_ppc4_cpb2_o9.npy")
+    etiquetas = np.load("etiquetas.npy")
+
+    # Separación de los datos en entrenamiento y test
+    X_train, X_test, y_train, y_test = train_test_split(caracteristicas, etiquetas, test_size=0.2, random_state=42)
+
+    # Els dos algorismes es beneficien d'estandaritzar les dades
+    scaler = StandardScaler()
+    X_transformed = scaler.fit_transform(X_train)
+    X_test_transformed = scaler.transform(X_test)
+
+    param_kernels = {
+        'rbf': {'kernel': ['rbf'], 'C': [1], 'gamma': ['auto', 'scale']},
+        'linear': {'kernel': ['linear'], 'C': [0.1, 1, 10, 100]},
+        'poly': {'kernel': ['poly'], 'C': [0.1, 1, 10, 100], 'degree': [2, 3, 4], 'gamma': ['scale', 'auto']},
+    }
+
+    best_models = {}
+    svm = SVC()
+    grid_search = GridSearchCV(svm, param_kernels['rbf'], cv=3)
+    grid_search.fit(X_transformed, y_train)
+    print("Modelo entrenado")
+    
+    """for kernel in param_kernels.keys():
+        print(f"Entrenando modelo SVM con kernel {kernel}")
+        svm = SVC(kernel=kernel)
+        grid_search = GridSearchCV(svm, param_kernels[kernel], cv=5)
+        grid_search.fit(X_transformed, y_train)
+        best_models[kernel] = grid_search.best_estimator_
+        print(f"Mejores parámetros encontrados: {grid_search.best_params_}")
+        print(f"Mejor precisión encontrada: {grid_search.best_score_}")
+        print("---------------------------------------------------")
+
+    for kernel, model in best_models.items():
+        y_pred = model.predict(X_test_transformed)
+        accuracy = accuracy_score(y_test, y_pred)
+        print(f"Precisión del modelo SVM con kernel {kernel}: {accuracy:.2f}")
+        print("---------------------------------------------------")"""
+    return
 
 def main():
+    """
     carpeta_images = "gatigos/images"  # NO ES POT MODIFICAR
     carpeta_anotacions = "gatigos/annotations"  # NO ES POT MODIFICAR
     mida = (64, 64)  # DEFINEIX LA MIDA, ES RECOMANA COMENÇAR AMB 64x64
+    
     imatges, etiquetes = obtenir_dades(carpeta_images, carpeta_anotacions, mida)
 
-    plt.imshow(imatges[:,:,0])
-    plt.show()
+    configuracionsHoG(imatges)
+    np.save("etiquetas.npy", etiquetes)
+    """
 
-    # configuracionsHoG(imatges)
+    # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF) y 3 configuraciones de HoG
+    
+    entrenamiento_SVM()
 
+    # TODO: Validación y test de los modelos
     
 
 if __name__ == "__main__":

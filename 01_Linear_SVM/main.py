@@ -22,7 +22,6 @@ perceptron.fit(X_transformed, y)
 y_prediction = perceptron.predict(X)
 
 
-# TODO: Entrenam una SVM linear (classe SVC)
 svm = SVC(C=10.0, kernel='linear')
 svm.fit(X_transformed, y)
 
@@ -37,7 +36,6 @@ origen = (0, -perceptron.w_[0] / perceptron.w_[2])
 plt.axline(xy1=origen, slope=m, c="blue", label="Adaline")
 
 
-# TODO Mostram els resultats SVM
 
 # plt.axline(xy1= TODO, slope= TODO, c="green", label="SVM")
 # plt.scatter( TODO, facecolors="none", edgecolors="green")
