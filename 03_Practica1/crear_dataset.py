@@ -87,7 +87,7 @@ def obtenir_dades(carpeta_imatges, carpeta_anotacions, mida=(64, 64)):
 # -                               FUNCIONES A IMPLEMENTAR                                     -
 # ---------------------------------------------------------------------------------------------
 
-def obtenirHoG(imagen, ppc = (4, 4), cpb = (2, 2), o = 9):
+def obtenirHoG(imagen, ppc = (8, 8), cpb = (2, 2), o = 9):
     """ Función para extraer características HoG de una sola imagen y mostrarla. """
     
     # Extraer HoG de la imagen
@@ -144,6 +144,7 @@ def configuracionsHoG(imatges):
         #np.save(filename, caracteristiques_hog)
         print(f"Guardadas todas las características en {filename}")
 
+
 def entrenamiento_SVM():
     """ Función para entrenar un modelo SVM con diferentes kernels. """
 
@@ -153,7 +154,7 @@ def entrenamiento_SVM():
     # Separación de los datos en entrenamiento y test
     X_train, X_test, y_train, y_test = train_test_split(caracteristicas, etiquetas, test_size=0.2, random_state=42)
 
-    # Els dos algorismes es beneficien d'estandaritzar les dades
+    # Estandarización de los datos:
     scaler = StandardScaler()
     X_transformed = scaler.fit_transform(X_train)
     X_test_transformed = scaler.transform(X_test)
@@ -199,12 +200,28 @@ def main():
     np.save("etiquetas.npy", etiquetes)
     """
 
-    # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF) y 3 configuraciones de HoG
+    process_images()
+
+    # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF):
     
-    entrenamiento_SVM()
+    # entrenamiento_SVM()
 
     # TODO: Validación y test de los modelos
-    
+
+
+def process_images():
+    """ Función para procesar X cantidad de imágenes y visualizar las características HoG. """
+
+    image_files = [f"gatigos/images/Cats_Test{i}.png" for i in range(6)]
+    annotation_files = [f"gatigos/annotations/Cats_Test{i}.xml" for i in range(6)]
+    mida = (64, 64)
+
+    for img_file, ann_file in zip(image_files, annotation_files):
+        imagen = imread(img_file, as_gray=True)
+        c = retall_normalitzat(imagen, extract_xml_annotation(ann_file), mida)
+        
+        obtenirHoG(c, o = 9)
+ 
 
 if __name__ == "__main__":
 
