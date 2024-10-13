@@ -8,6 +8,7 @@ from skimage.transform import resize
 
 # https://www.kaggle.com/datasets/andrewmvd/dog-and-cat-detection/code
 
+# HOla
 
 #Parsetja el fitxer xml i recupera la informació necessaria per trobar la cara de l'animal
 #
