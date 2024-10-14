@@ -159,23 +159,24 @@ def entrenamiento_SVM():
     X_test_transformed = scaler.transform(X_test)
 
     param_kernels = {
-        'rbf': {'kernel': ['rbf'], 'C': [1], 'gamma': ['auto', 'scale']},
+        'rbf': {'kernel': ['rbf'], 'C': [0.1, 1, 10, 100], 'gamma': ['scale', 'auto']},
         'linear': {'kernel': ['linear'], 'C': [0.1, 1, 10, 100]},
         'poly': {'kernel': ['poly'], 'C': [0.1, 1, 10, 100], 'degree': [2, 3, 4], 'gamma': ['scale', 'auto']},
     }
 
     best_models = {}
-    svm = SVC()
-    grid_search = GridSearchCV(svm, param_kernels['rbf'], cv=3)
-    grid_search.fit(X_transformed, y_train)
-    print("Modelo entrenado")
     
-    """for kernel in param_kernels.keys():
+    for kernel in param_kernels.keys():
         print(f"Entrenando modelo SVM con kernel {kernel}")
-        svm = SVC(kernel=kernel)
-        grid_search = GridSearchCV(svm, param_kernels[kernel], cv=5)
+        start_time = time.time()
+
+        svm = SVC()
+        grid_search = GridSearchCV(svm, param_kernels[kernel], cv=5, n_jobs=-1)
+
         grid_search.fit(X_transformed, y_train)
+
         best_models[kernel] = grid_search.best_estimator_
+        print(f"Entrenamiento finalizado en {time.time() - start_time:.2f} segundos")
         print(f"Mejores parámetros encontrados: {grid_search.best_params_}")
         print(f"Mejor precisión encontrada: {grid_search.best_score_}")
         print("---------------------------------------------------")
@@ -184,7 +185,7 @@ def entrenamiento_SVM():
         y_pred = model.predict(X_test_transformed)
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Precisión del modelo SVM con kernel {kernel}: {accuracy:.2f}")
-        print("---------------------------------------------------")"""
+        print("---------------------------------------------------")
     return
 
 def main():
