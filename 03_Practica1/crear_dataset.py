@@ -99,14 +99,14 @@ def obtenirHoG(imagen, ppc = (8, 8), cpb = (2, 2), o = 9):
                                                      visualize = True)       # Devuelve la imagen HoG
     
     # Mostrar imagen original y HoG
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
+    """fig, ax = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
     ax[0].imshow(imagen)
     ax[0].set_title('Imagen Original')
     
     ax[1].imshow(imagenHOG)
     ax[1].set_title('Imagen HOG')
     
-    plt.show()
+    plt.show()"""
 
     return caracteristicas  # Devuelve las características HoG como vector
 
@@ -116,10 +116,10 @@ def configuracionsHoG(imatges):
     
     # Definir las configuraciones de HoG:
     hog_configs = [
-        {'ppc': (4, 4), 'cpb': (2, 2), 'o': 9},
-        {'ppc': (4, 4), 'cpb': (8, 8), 'o': 9},
-        {'ppc': (6, 6), 'cpb': (2, 2), 'o': 9},
-        {'ppc': (8, 8), 'cpb': (4, 4), 'o': 12}
+        #{'ppc': (4, 4), 'cpb': (2, 2), 'o': 9},
+        #{'ppc': (4, 4), 'cpb': (8, 8), 'o': 9},
+        #{'ppc': (6, 6), 'cpb': (2, 2), 'o': 9},
+        {'ppc': (8, 8), 'cpb': (2, 2), 'o': 9}
     ]
     
     # Probar cada configuración en todas las imágenes
@@ -141,14 +141,14 @@ def configuracionsHoG(imatges):
         
         # Guardar las características de cada configuración en un archivo
         filename = f"caracteristiques_hog_ppc{config['ppc'][0]}_cpb{config['cpb'][0]}_o{config['o']}.npy"
-        #np.save(filename, caracteristiques_hog)
+        np.save(filename, caracteristiques_hog)
         print(f"Guardadas todas las características en {filename}")
 
 
 def entrenamiento_SVM():
     """ Función para entrenar un modelo SVM con diferentes kernels. """
 
-    caracteristicas = np.load("caracteristiques_hog_ppc4_cpb2_o9.npy")
+    caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o18.npy")
     etiquetas = np.load("etiquetas.npy")
 
     # Separación de los datos en entrenamiento y test
@@ -160,13 +160,19 @@ def entrenamiento_SVM():
     X_test_transformed = scaler.transform(X_test)
 
     param_kernels = {
-        'rbf': {'kernel': ['rbf'], 'C': [0.1, 1, 10, 100], 'gamma': ['scale', 'auto']},
-        'linear': {'kernel': ['linear'], 'C': [0.1, 1, 10, 100]},
-        'poly': {'kernel': ['poly'], 'C': [0.1, 1, 10, 100], 'degree': [2, 3, 4], 'gamma': ['scale', 'auto']},
+        #'rbf': {'kernel': ['rbf'], 'C': [0.01, 0.05, 0.1, 1], 'gamma': ['scale', 'auto'], 'tol': [1e-2, 1e-3, 1e-4], 'max_iter': [1000, -1]},
+        'linear': {'kernel': ['linear'], 'C': [1e-5, 1e-4, 0.001, 0.01, 0.1, 1, 100], 'tol': [1, 0.1, 1e-2, 1e-3, 1e-4], 'max_iter': [5000, 10000, 20000, -1]},
+        #'poly': {'kernel': ['poly'], 'C': [0.1, 1, 10, 100], 'degree': [1, 2, 3, 4, 8], 'gamma': ['scale', 'auto'], 'coef0': [0, 0.5, 1]},
     }
 
-    best_models = {}
     
+    """svm = SVC(kernel='linear', C=0.01, gamma='scale', tol=1e-2)
+    svm.fit(X_transformed, y_train)
+    y_pred = svm.predict(X_test_transformed)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Precisión del modelo SVM con kernel rbf: {accuracy:.3f}")"""
+
+    best_models = {}
     for kernel in param_kernels.keys():
         print(f"Entrenando modelo SVM con kernel {kernel}")
         start_time = time.time()
@@ -185,27 +191,26 @@ def entrenamiento_SVM():
     for kernel, model in best_models.items():
         y_pred = model.predict(X_test_transformed)
         accuracy = accuracy_score(y_test, y_pred)
-        print(f"Precisión del modelo SVM con kernel {kernel}: {accuracy:.2f}")
+        print(f"Precisión del modelo SVM con kernel {kernel}: {accuracy:.3f}")
         print("---------------------------------------------------")
     return
+    
 
 def main():
-    """
-    carpeta_images = "gatigos/images"  # NO ES POT MODIFICAR
+    """carpeta_images = "gatigos/images"  # NO ES POT MODIFICAR
     carpeta_anotacions = "gatigos/annotations"  # NO ES POT MODIFICAR
     mida = (64, 64)  # DEFINEIX LA MIDA, ES RECOMANA COMENÇAR AMB 64x64
     
     imatges, etiquetes = obtenir_dades(carpeta_images, carpeta_anotacions, mida)
 
     configuracionsHoG(imatges)
-    np.save("etiquetas.npy", etiquetes)
-    """
+    np.save("etiquetas.npy", etiquetes)"""
 
-    process_images()
+    #process_images()
 
     # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF):
     
-    # entrenamiento_SVM()
+    entrenamiento_SVM()
 
     # TODO: Validación y test de los modelos
 
