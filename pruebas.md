@@ -35,3 +35,11 @@ Tampoco importa igualmente el tipo de hog que apliquemos, ya que los resultados 
 ```
 
 ![alt text](image-4.png)
+
+![alt text](image-5.png)
+
+```python	
+'linear': {'kernel': ['linear'], 'C': [9e-5, 1e-4, 11e-5, 0.001, 0.01], 'tol': [1.5, 1, 0.1, 1e-2], 'max_iter': [250, 500, 1000, 2000]},
+```
+
+![alt text](image-6.png)

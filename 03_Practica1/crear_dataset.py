@@ -161,7 +161,7 @@ def entrenamiento_SVM():
 
     param_kernels = {
         #'rbf': {'kernel': ['rbf'], 'C': [0.01, 0.05, 0.1, 1], 'gamma': ['scale', 'auto'], 'tol': [1e-2, 1e-3, 1e-4], 'max_iter': [1000, -1]},
-        'linear': {'kernel': ['linear'], 'C': [1e-5, 1e-4, 0.001, 0.01, 0.1, 1, 100], 'tol': [1, 0.1, 1e-2, 1e-3, 1e-4], 'max_iter': [5000, 10000, 20000, -1]},
+        'linear': {'kernel': ['linear'], 'C': [9e-5, 1e-4, 11e-5, 0.001, 0.01], 'tol': [1.5, 1, 0.1, 1e-2], 'max_iter': [250, 500, 1000, 2000]},
         #'poly': {'kernel': ['poly'], 'C': [0.1, 1, 10, 100], 'degree': [1, 2, 3, 4, 8], 'gamma': ['scale', 'auto'], 'coef0': [0, 0.5, 1]},
     }
 
