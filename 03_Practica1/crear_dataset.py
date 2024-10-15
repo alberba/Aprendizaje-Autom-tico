@@ -185,7 +185,7 @@ def entrenamiento_SVM():
         best_models[kernel] = grid_search.best_estimator_
         print(f"Entrenamiento finalizado en {time.time() - start_time:.2f} segundos")
         print(f"Mejores parámetros encontrados: {grid_search.best_params_}")
-        print(f"Mejor precisión encontrada: {grid_search.best_score_}")
+        print(f"Mejor precisión encontrada: {grid_search.best_score_}") # Esto no es accuracy o si?
         print("---------------------------------------------------")
 
     for kernel, model in best_models.items():
@@ -195,6 +195,67 @@ def entrenamiento_SVM():
         print("---------------------------------------------------")
     return
     
+def evaluar_modelo(kernel, c=1.0, gamma='scale', degree=3, coef0=0.0, tol=1e-3, iter=-1):
+    """ Evalúa si el modelo está sufriendo de overfitting o underfitting. """
+
+    # Cargar las características y etiquetas:
+    caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o18.npy")
+    etiquetas = np.load("etiquetas.npy")
+
+    # Separación de los datos en entrenamiento y test
+    X_train, X_test, y_train, y_test = train_test_split(caracteristicas, etiquetas, test_size=0.2, random_state=42)
+
+    # Estandarización de los datos:
+    scaler = StandardScaler()
+    X_transformed = scaler.fit_transform(X_train)
+    X_test_transformed = scaler.transform(X_test)
+    
+    # Crear el modelo SVM con los parámetros dados:
+    svm = SVC(kernel=kernel, C=c, gamma=gamma, degree=degree, coef0=coef0, tol=tol, max_iter=iter)
+    
+    # Entrenar el modelo
+    svm.fit(X_transformed, y_train)
+
+    # Predicciones en los conjuntos de entrenamiento y prueba
+    y_train_pred = svm.predict(X_transformed)
+    y_test_pred = svm.predict(X_test_transformed)
+    
+    # Calcula las precisiones en entrenamiento y prueba
+    train_accuracy = accuracy_score(y_train, y_train_pred)
+    test_accuracy = accuracy_score(y_test, y_test_pred)
+    
+    # Muestra los resultados
+    print(f"----- Modelo SVM con kernel {kernel} -----")
+    print(f"Accuracy en entrenamiento: {train_accuracy:.3f}")
+    print(f"Accuracy en prueba: {test_accuracy:.3f}")
+    
+    # Calcula la diferencia entre la precisión de entrenamiento y prueba
+    diferencia = abs(train_accuracy - test_accuracy)
+    
+    # Analiza si el modelo está sobreajustando o subajustando
+    if train_accuracy > 0.95 and test_accuracy < 0.80:
+        print(f"Diferencia: {diferencia:.3f} - El modelo podría estar sobreajustando (overfitting).")
+    elif train_accuracy < 0.80 and test_accuracy < 0.80:
+        print(f"Diferencia: {diferencia:.3f} - El modelo podría estar subajustando (underfitting).")
+    else:
+        print(f"Diferencia: {diferencia:.3f} - El modelo parece tener un buen equilibrio entre entrenamiento y prueba.")
+    
+    print("-------------------------------------------------------------------------------------------------\n")
+
+
+def process_images():
+    """ Función para procesar X cantidad de imágenes y visualizar las características HoG. """
+
+    image_files = [f"gatigos/images/Cats_Test{i}.png" for i in range(6)]
+    annotation_files = [f"gatigos/annotations/Cats_Test{i}.xml" for i in range(6)]
+    mida = (64, 64)
+
+    for img_file, ann_file in zip(image_files, annotation_files):
+        imagen = imread(img_file, as_gray=True)
+        c = retall_normalitzat(imagen, extract_xml_annotation(ann_file), mida)
+        
+        obtenirHoG(c, o = 9)
+        
 
 def main():
     """carpeta_images = "gatigos/images"  # NO ES POT MODIFICAR
@@ -210,24 +271,19 @@ def main():
 
     # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF):
     
-    entrenamiento_SVM()
+    #entrenamiento_SVM()
+
+    # Evaluación del mejor modelo SVM obtenido con kernel lineal:
+    evaluar_modelo(kernel='linear', c=0.0001, tol=1, iter=500)
+
+    # Evaluación del mejor modelo SVM obtenido con kernel polinómico:
+    #evaluar_modelo(kernel='poly')
+
+    # Evaluación del mejor modelo SVM obtenido con kernel RBF:
+    evaluar_modelo(kernel='rbf')
 
     # TODO: Validación y test de los modelos
 
-
-def process_images():
-    """ Función para procesar X cantidad de imágenes y visualizar las características HoG. """
-
-    image_files = [f"gatigos/images/Cats_Test{i}.png" for i in range(6)]
-    annotation_files = [f"gatigos/annotations/Cats_Test{i}.xml" for i in range(6)]
-    mida = (64, 64)
-
-    for img_file, ann_file in zip(image_files, annotation_files):
-        imagen = imread(img_file, as_gray=True)
-        c = retall_normalitzat(imagen, extract_xml_annotation(ann_file), mida)
-        
-        obtenirHoG(c, o = 9)
- 
 
 if __name__ == "__main__":
 
