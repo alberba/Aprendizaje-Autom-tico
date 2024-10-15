@@ -199,7 +199,7 @@ def evaluar_modelo(kernel, c=1.0, gamma='scale', degree=3, coef0=0.0, tol=1e-3, 
     """ Evalúa si el modelo está sufriendo de overfitting o underfitting. """
 
     # Cargar las características y etiquetas:
-    caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o18.npy")
+    caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o9.npy")
     etiquetas = np.load("etiquetas.npy")
 
     # Separación de los datos en entrenamiento y test
