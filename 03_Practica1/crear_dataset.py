@@ -165,12 +165,9 @@ def entrenamiento_SVM():
         #'poly': {'kernel': ['poly'], 'C': [0.1, 1, 10, 100], 'degree': [1, 2, 3, 4, 8], 'gamma': ['scale', 'auto'], 'coef0': [0, 0.5, 1]},
     }
 
-    
-    """svm = SVC(kernel='linear', C=0.01, gamma='scale', tol=1e-2)
-    svm.fit(X_transformed, y_train)
-    y_pred = svm.predict(X_test_transformed)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Precisión del modelo SVM con kernel rbf: {accuracy:.3f}")"""
+    # Llamada a la función para entrenar un modelo SVM específico
+    #params_debug = {'kernel': 'linear', 'C': 0.01, 'gamma': 'scale', 'tol': 1e-2}
+    #make_fix_model(X_transformed, y_train, X_test_transformed, y_test, params_debug)
 
     best_models = {}
     for kernel in param_kernels.keys():
@@ -271,16 +268,16 @@ def main():
 
     # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF):
     
-    #entrenamiento_SVM()
+    entrenamiento_SVM()
 
     # Evaluación del mejor modelo SVM obtenido con kernel lineal:
-    evaluar_modelo(kernel='linear', c=0.0001, tol=1, iter=500)
+    #evaluar_modelo(kernel='linear', c=0.0001, tol=1, iter=500)
 
     # Evaluación del mejor modelo SVM obtenido con kernel polinómico:
     #evaluar_modelo(kernel='poly')
 
     # Evaluación del mejor modelo SVM obtenido con kernel RBF:
-    evaluar_modelo(kernel='rbf')
+    #evaluar_modelo(kernel='rbf')
 
     # TODO: Validación y test de los modelos
 
@@ -289,11 +286,13 @@ if __name__ == "__main__":
 
     main()
 
-
-
-
-
-
-
+def train_and_evaluate_fix_model(X_transformed, y_train, X_test_transformed, y_test, params):
+    """ Función para entrenar un modelo SVM con parámetros fijos. """
+    svm = SVC(params)
+    svm.fit(X_transformed, y_train)
+    y_pred = svm.predict(X_test_transformed)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Precisión del modelo SVM con kernel rbf: {accuracy:.3f}")
+    return
 
 
