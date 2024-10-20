@@ -1,5 +1,6 @@
 import os
 import time
+import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
 import xml.etree.ElementTree as etree
@@ -9,7 +10,7 @@ from skimage.transform import resize
 from sklearn.preprocessing import StandardScaler
 
 # Importar librerías necesarias:
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.svm import SVC
 
@@ -99,14 +100,14 @@ def obtenirHoG(imagen, ppc = (8, 8), cpb = (2, 2), o = 9):
                                                      visualize = True)       # Devuelve la imagen HoG
     
     # Mostrar imagen original y HoG
-    """fig, ax = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
+    fig, ax = plt.subplots(1, 2, figsize=(12, 6), sharex=True, sharey=True)
     ax[0].imshow(imagen)
     ax[0].set_title('Imagen Original')
     
     ax[1].imshow(imagenHOG)
     ax[1].set_title('Imagen HOG')
     
-    plt.show()"""
+    plt.show()
 
     return caracteristicas  # Devuelve las características HoG como vector
 
@@ -120,14 +121,15 @@ def configuracionsHoG(imatges):
         #{'ppc': (4, 4), 'cpb': (8, 8), 'o': 9},
         #{'ppc': (6, 6), 'cpb': (2, 2), 'o': 9},
         {'ppc': (8, 8), 'cpb': (2, 2), 'o': 9}
+        #{'ppc': (8, 8), 'cpb': (2, 2), 'o': 18}
     ]
     
     # Probar cada configuración en todas las imágenes
     for config in hog_configs:
         
         features_list = []
-        for i in range(imatges.shape[2]): # Iterar sobre todas las imágenes
-        #for i in range(3):  
+        #for i in range(imatges.shape[2]): # Iterar sobre todas las imágenes
+        for i in range(3):  
             # Obtener características HoG para cada imagen
             caracteristiques = obtenirHoG(imatges[:,:,i], 
                                           ppc = config['ppc'], 
@@ -145,11 +147,11 @@ def configuracionsHoG(imatges):
         print(f"Guardadas todas las características en {filename}")
 
 
-def entrenamiento_SVM():
+def entrenamiento_SVM(caract, etiq):
     """ Función para entrenar un modelo SVM con diferentes kernels. """
 
-    caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o18.npy")
-    etiquetas = np.load("etiquetas.npy")
+    caracteristicas = np.load(caract)
+    etiquetas = np.load(etiq)
 
     # Separación de los datos en entrenamiento y test
     X_train, X_test, y_train, y_test = train_test_split(caracteristicas, etiquetas, test_size=0.2, random_state=42)
@@ -162,12 +164,17 @@ def entrenamiento_SVM():
     param_kernels = {
         'rbf': {'kernel': ['rbf'], 'C': [3.5, 3], 'gamma': ['scale', 'auto'], 'tol': [1.5, 1], 'max_iter': [2000, 2500]},
         #'linear': {'kernel': ['linear'], 'C': [9e-5, 1e-4, 11e-5, 0.001, 0.01], 'tol': [1.5, 1, 0.1, 1e-2], 'max_iter': [250, 500, 1000, 2000]},
-       #'poly': {'kernel': ['poly'], 'C': [0.85, 1], 'degree': [1, 2], 'gamma': ['scale', 'auto'], 'coef0': [0.1, 0.15, 0.2], 'max_iter': [1500, 1000], 'tol': [0.75, 0.5]},
+        #'poly': {'kernel': ['poly'], 'C': [0.85, 1], 'degree': [1, 2], 'gamma': ['scale', 'auto'], 'coef0': [0.1, 0.15, 0.2], 'max_iter': [1500, 1000], 'tol': [0.75, 0.5]},
     }
 
+
+
+    """ Revisar si esto hace falta o no
     # Llamada a la función para entrenar un modelo SVM específico
     #params_debug = {'kernel': 'linear', 'C': 0.01, 'gamma': 'scale', 'tol': 1e-2}
     #make_fix_model(X_transformed, y_train, X_test_transformed, y_test, params_debug)
+    """
+
 
     best_models = {}
     for kernel in param_kernels.keys():
@@ -190,94 +197,37 @@ def entrenamiento_SVM():
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Precisión del modelo SVM con kernel {kernel}: {accuracy:.3f}")
         print("---------------------------------------------------")
+    
+    return
+
+
+def contar_muestras(data):
+    """ Cuenta el número de muestras de cada clase. """
+    
+    clases, conteo = np.unique(data, return_counts=True)
+    
+    print("Número de muestras por clase (0 -> Gato, 1 -> Perro):")
+    for clase, num in zip(clases, conteo):
+        print(f"Clase {clase}: {num} ")
+
+    print("\n")
     return
     
-def evaluar_modelo(kernel, c=1.0, gamma='scale', degree=3, coef0=0.0, tol=1e-3, iter=-1):
-    """ Evalúa si el modelo está sufriendo de overfitting o underfitting. """
-
-    # Cargar las características y etiquetas:
-    caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o9.npy")
-    etiquetas = np.load("etiquetas.npy")
-
-    # Separación de los datos en entrenamiento y test
-    X_train, X_test, y_train, y_test = train_test_split(caracteristicas, etiquetas, test_size=0.2, random_state=42)
-
-    # Estandarización de los datos:
-    scaler = StandardScaler()
-    X_transformed = scaler.fit_transform(X_train)
-    X_test_transformed = scaler.transform(X_test)
-    
-    # Crear el modelo SVM con los parámetros dados:
-    svm = SVC(kernel=kernel, C=c, gamma=gamma, degree=degree, coef0=coef0, tol=tol, max_iter=iter)
-    
-    # Entrenar el modelo
-    svm.fit(X_transformed, y_train)
-
-    # Predicciones en los conjuntos de entrenamiento y prueba
-    y_train_pred = svm.predict(X_transformed)
-    y_test_pred = svm.predict(X_test_transformed)
-    
-    # Calcula las precisiones en entrenamiento y prueba
-    train_accuracy = accuracy_score(y_train, y_train_pred)
-    test_accuracy = accuracy_score(y_test, y_test_pred)
-    
-    # Muestra los resultados
-    print(f"----- Modelo SVM con kernel {kernel} -----")
-    print(f"Accuracy en entrenamiento: {train_accuracy:.3f}")
-    print(f"Accuracy en prueba: {test_accuracy:.3f}")
-    
-    # Calcula la diferencia entre la precisión de entrenamiento y prueba
-    diferencia = abs(train_accuracy - test_accuracy)
-    
-    # Analiza si el modelo está sobreajustando o subajustando
-    if train_accuracy > 0.95 and test_accuracy < 0.80:
-        print(f"Diferencia: {diferencia:.3f} - El modelo podría estar sobreajustando (overfitting).")
-    elif train_accuracy < 0.80 and test_accuracy < 0.80:
-        print(f"Diferencia: {diferencia:.3f} - El modelo podría estar subajustando (underfitting).")
-    else:
-        print(f"Diferencia: {diferencia:.3f} - El modelo parece tener un buen equilibrio entre entrenamiento y prueba.")
-    
-    print("-------------------------------------------------------------------------------------------------\n")
-
 
 def process_images():
     """ Función para procesar X cantidad de imágenes y visualizar las características HoG. """
 
-    image_files = [f"gatigos/images/Cats_Test{i}.png" for i in range(6)]
-    annotation_files = [f"gatigos/annotations/Cats_Test{i}.xml" for i in range(6)]
+    image_files = [f"gatigos/images/Cats_Test{i}.png" for i in range(3)]
+    annotation_files = [f"gatigos/annotations/Cats_Test{i}.xml" for i in range(3)]
     mida = (64, 64)
 
     for img_file, ann_file in zip(image_files, annotation_files):
         imagen = imread(img_file, as_gray=True)
         c = retall_normalitzat(imagen, extract_xml_annotation(ann_file), mida)
         
-        obtenirHoG(c, o = 9)
-        
+        obtenirHoG(c, ppc=(8,8), cpb=(2,2), o = 18)
 
-def main():
-
-    #obtener_datos_y_hog()
-    #process_images()
-
-    # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF):
-    
-    entrenamiento_SVM()
-
-    # Evaluación del mejor modelo SVM obtenido con kernel lineal:
-    #evaluar_modelo(kernel='linear', c=0.0001, tol=1, iter=500)
-
-    # Evaluación del mejor modelo SVM obtenido con kernel polinómico:
-    #evaluar_modelo(kernel='poly')
-
-    # Evaluación del mejor modelo SVM obtenido con kernel RBF:
-    #evaluar_modelo(kernel='rbf')
-
-    # TODO: Validación y test de los modelos
-
-
-if __name__ == "__main__":
-
-    main()
+    return
 
 def obtener_datos_y_hog():
     """ Función para obtener los datos, extraer características HoG y guardarlas en un archivo. """
@@ -290,14 +240,164 @@ def obtener_datos_y_hog():
 
     configuracionsHoG(imatges)
 
-
 def train_and_evaluate_fix_model(X_transformed, y_train, X_test_transformed, y_test, params):
-    """ Función para entrenar un modelo SVM con parámetros fijos. """
-    svm = SVC(params)
+    """ Función para entrenar un modelo SVM con parámetros fijos y evaluarlo. """
+    
+    svm = SVC(**params) # Los '**' sirven para desempaquetar el diccionario de parámetros
     svm.fit(X_transformed, y_train)
     y_pred = svm.predict(X_test_transformed)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Precisión del modelo SVM con kernel rbf: {accuracy:.3f}")
-    return
+
+    # Cálculo de las métricas 'Precision' - 'Recall' - 'F1' - 'Accuracy'
+    precision, sensibilidad, f1, exactitud = calcular_metricas(y_test, y_pred)
+    # Realmente accuracy no lo pide.
+
+    print(f"Exactitud: {exactitud:.3f}")
+    print(f"Precisión: {precision:.3f}")
+    print(f"Sensibilidad: {sensibilidad:.3f}")
+    print(f"F1: {f1:.3f}\n")
+
+    # Evaluar si el modelo está sobreajustando o subajustando
+    y_train_pred = svm.predict(X_transformed)
+    train_accuracy = accuracy_score(y_train, y_train_pred)
+    test_accuracy = exactitud  # Ya calculada anteriormente
+
+    # Evaluar si el modelo está sobreajustando o subajustando
+    y_train_pred = svm.predict(X_transformed)
+    train_accuracy = accuracy_score(y_train, y_train_pred)
+    test_accuracy = exactitud  # Ya calculada anteriormente
+
+    print(f"-- Testeo por si hay overfitting o underfitting --")
+    print(f"Accuracy en entrenamiento: {train_accuracy:.3f}")
+    print(f"Accuracy en prueba: {test_accuracy:.3f}")
+
+    diferencia = abs(train_accuracy - test_accuracy)
+
+    if train_accuracy > 0.95 and test_accuracy < 0.80:
+        print(f"Diferencia: {diferencia:.3f} - El modelo podría estar sobreajustando (overfitting).")
+    
+    elif train_accuracy < 0.80 and test_accuracy < 0.80:
+        print(f"Diferencia: {diferencia:.3f} - El modelo podría estar subajustando (underfitting).")
+    
+    else:
+        print(f"Diferencia: {diferencia:.3f} - El modelo parece tener un buen equilibrio entre entrenamiento y prueba.")
+    
+    print("-------------------------------------------------------------------------------------------------\n")
+
+    return precision, sensibilidad, f1, exactitud
+
+def calcular_metricas(y_test, y_pred, avg='weighted'):
+    """ Función para calcular la precisión, sensibilidad, F1 y exactitud de cada modelo. """
+
+    precision = precision_score(y_test, y_pred)
+    sensibilidad = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+
+    #precision = precision_score(y_test, y_pred, average = avg)
+    #sensibilidad = recall_score(y_test, y_pred, average = avg)
+    #f1 = f1_score(y_test, y_pred, average = avg)
+    
+    exactitud = accuracy_score(y_test, y_pred)
+    
+    return precision, sensibilidad, f1, exactitud
+
+
+def construir_tabla_y_grafico(resultados):
+    """ Construye una tabla comparativa y un gráfico con los resultados obtenidos. """
+    # Crear la tabla comparativa
+    df_resultados = pd.DataFrame(resultados, columns=['Modelo', 'Precisión', 'Sensibilidad', 'F1', 'Exactitud'])
+    print(df_resultados)
+
+    # Crear el gráfico
+    ax = df_resultados.set_index('Modelo').plot(kind='bar', figsize=(10, 6))
+    plt.title('Comparación de Modelos SVM')
+    plt.ylabel('Puntuación')
+    plt.xticks(rotation=0)
+    plt.legend(loc='lower right')
+
+    # Añadir etiquetas con los valores a las barras:
+    for p in ax.patches:
+        ax.annotate(f'{p.get_height():.2f}', (p.get_x(), p.get_height() * 1.01))
+
+    plt.show()
+
+
+def main():
+
+    """ Ya hemos obtenido los HoG de las imágenes y guardado las características 
+    process_images() --> ¿lo dejo o lo quito?
+    obtener_datos_y_hog()
+    """
+
+    # Cargar las características y etiquetas:
+    caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o9.npy")
+    etiquetas = np.load("etiquetas.npy")
+
+    # Separación de los datos en entrenamiento y test
+    X_train, X_test, y_train, y_test = train_test_split(caracteristicas, etiquetas, test_size=0.2, random_state=42)
+
+    # Estandarización de los datos:
+    scaler = StandardScaler()
+    X_transformed = scaler.fit_transform(X_train)
+    X_test_transformed = scaler.transform(X_test)
+
+    # Contar número de muestras del conjunto de Test
+    # para saber si hay que balancear las clases:
+    contar_muestras(y_test)
+
+    """ Ya hemos obtenido los mejores parámetros para cada kernel y los hemos guardado 
+    entrenamiento_SVM(caracteristicas, etiquetas)
+    """
+
+    # Mejores parámetros para cada kernel:
+    best_params_poly = {
+        'kernel': 'poly',
+        'C': 1,
+        'degree': 2,
+        'gamma': 'auto',
+        'coef0': 0.1,
+        'tol': 0.5,
+        'max_iter': 1500
+    }
+    
+    best_params_linear = {
+        'kernel': 'linear',
+        'C': 0.0001,
+        'tol': 1,
+        'max_iter': 500
+    }
+    
+    best_params_rbf = {
+        'kernel': 'rbf',
+        'C': 3,
+        'gamma': 'scale',
+        'tol': 1,
+        'max_iter': 2000
+    }
+
+    # Crear tabla comparativa y gráfico con los resultados obtenidos:
+    resultados = []
+
+    # Evaluación de los modelos SVM obtenidos con los mejores parámetros:
+    print(f"----- Evaluando Modelo SVM con kernel Linear -----")
+    precision, sensibilidad, f1, exactitud = train_and_evaluate_fix_model(X_transformed, y_train, X_test_transformed, y_test, best_params_linear)
+    resultados.append(['poly', precision, sensibilidad, f1, exactitud])
+
+    print("----- Evaluando Modelo SVM con kernel Poly -----")
+    precision, sensibilidad, f1, exactitud = train_and_evaluate_fix_model(X_transformed, y_train, X_test_transformed, y_test, best_params_poly)
+    resultados.append(['linear', precision, sensibilidad, f1, exactitud])
+    
+    print("----- Evaluando Modelo SVM con kernel RBF -----")
+    precision, sensibilidad, f1, exactitud = train_and_evaluate_fix_model(X_transformed, y_train, X_test_transformed, y_test, best_params_rbf)
+    resultados.append(['rbf', precision, sensibilidad, f1, exactitud])
+
+    # Construir tabla comparativa y gráfico con los resultados obtenidos:
+    construir_tabla_y_grafico(resultados)
+
+
+if __name__ == "__main__":
+
+    main()
+
+
 
 
