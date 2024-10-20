@@ -160,9 +160,9 @@ def entrenamiento_SVM():
     X_test_transformed = scaler.transform(X_test)
 
     param_kernels = {
-        #'rbf': {'kernel': ['rbf'], 'C': [0.01, 0.05, 0.1, 1], 'gamma': ['scale', 'auto'], 'tol': [1e-2, 1e-3, 1e-4], 'max_iter': [1000, -1]},
-        'linear': {'kernel': ['linear'], 'C': [9e-5, 1e-4, 11e-5, 0.001, 0.01], 'tol': [1.5, 1, 0.1, 1e-2], 'max_iter': [250, 500, 1000, 2000]},
-        #'poly': {'kernel': ['poly'], 'C': [0.1, 1, 10, 100], 'degree': [1, 2, 3, 4, 8], 'gamma': ['scale', 'auto'], 'coef0': [0, 0.5, 1]},
+        'rbf': {'kernel': ['rbf'], 'C': [3.5, 3], 'gamma': ['scale', 'auto'], 'tol': [1.5, 1], 'max_iter': [2000, 2500]},
+        #'linear': {'kernel': ['linear'], 'C': [9e-5, 1e-4, 11e-5, 0.001, 0.01], 'tol': [1.5, 1, 0.1, 1e-2], 'max_iter': [250, 500, 1000, 2000]},
+       #'poly': {'kernel': ['poly'], 'C': [0.85, 1], 'degree': [1, 2], 'gamma': ['scale', 'auto'], 'coef0': [0.1, 0.15, 0.2], 'max_iter': [1500, 1000], 'tol': [0.75, 0.5]},
     }
 
     # Llamada a la función para entrenar un modelo SVM específico
@@ -255,15 +255,8 @@ def process_images():
         
 
 def main():
-    """carpeta_images = "gatigos/images"  # NO ES POT MODIFICAR
-    carpeta_anotacions = "gatigos/annotations"  # NO ES POT MODIFICAR
-    mida = (64, 64)  # DEFINEIX LA MIDA, ES RECOMANA COMENÇAR AMB 64x64
-    
-    imatges, etiquetes = obtenir_dades(carpeta_images, carpeta_anotacions, mida)
 
-    configuracionsHoG(imatges)
-    np.save("etiquetas.npy", etiquetes)"""
-
+    #obtener_datos_y_hog()
     #process_images()
 
     # TODO: Entrenamiento modelo SVM con 3 kernels (lineal, polinómico y RBF):
@@ -285,6 +278,18 @@ def main():
 if __name__ == "__main__":
 
     main()
+
+def obtener_datos_y_hog():
+    """ Función para obtener los datos, extraer características HoG y guardarlas en un archivo. """
+    carpeta_images = "gatigos/images"  # NO ES POT MODIFICAR
+    carpeta_anotacions = "gatigos/annotations"  # NO ES POT MODIFICAR
+    mida = (64, 64)  # DEFINEIX LA MIDA, ES RECOMANA COMENÇAR AMB 64x64
+    
+    imatges, etiquetes = obtenir_dades(carpeta_images, carpeta_anotacions, mida)
+    np.save("etiquetas.npy", etiquetes)
+
+    configuracionsHoG(imatges)
+
 
 def train_and_evaluate_fix_model(X_transformed, y_train, X_test_transformed, y_test, params):
     """ Función para entrenar un modelo SVM con parámetros fijos. """
