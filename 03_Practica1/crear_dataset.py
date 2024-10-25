@@ -423,8 +423,6 @@ def main():
     obtener_datos_y_hog()
     """
 
-    obtener_datos_y_hog()
-
     # Cargar características y etiquetas en el orden correcto:
     caracteristicas = np.load("caracteristiques_hog_ppc8_cpb2_o9.npy")
     etiquetas = np.load("etiquetas.npy")
@@ -434,11 +432,6 @@ def main():
     # Separación de los datos en entrenamiento y prueba manteniendo sincronización
     X_train, X_test, y_train, y_test, img_train, img_test, ann_train, ann_test = train_test_split(
         caracteristicas, etiquetas, image_files, annotation_files, test_size=0.2, random_state=42)
-
-    # Confirmación de que los datos están sincronizados
-    for i, (y, img, ann) in enumerate(zip(y_test, img_test, ann_test)):
-        if "Cats_Test3093" in ann:
-            print(f"Verificación en conjunto de prueba: Índice {i} - Etiqueta en y_test: {y} - Imagen: {img} - Anotación: {ann}")
 
     # Estandarización de los datos:
     scaler = StandardScaler()
