@@ -241,7 +241,7 @@ def entrenamiento_SVM(caract, etiq):
         best_models[kernel] = grid_search.best_estimator_
         print(f"Entrenamiento finalizado en {time.time() - start_time:.2f} segundos")
         print(f"Mejores parámetros encontrados: {grid_search.best_params_}")
-        print(f"Mejor precisión encontrada: {grid_search.best_score_}") # Esto no es accuracy o si?
+        print(f"Mejor precisión encontrada: {grid_search.best_score_}") 
         print("---------------------------------------------------")
 
     for kernel, model in best_models.items():
@@ -265,22 +265,6 @@ def contar_muestras(data):
     print("\n")
     return
     
-
-def process_images():
-    """ Función para procesar X cantidad de imágenes y visualizar las características HoG. """
-
-    image_files = [f"gatigos/images/Cats_Test{i}.png" for i in range(3)]
-    annotation_files = [f"gatigos/annotations/Cats_Test{i}.xml" for i in range(3)]
-    mida = (64, 64)
-
-    for img_file, ann_file in zip(image_files, annotation_files):
-        imagen = imread(img_file, as_gray=True)
-        c = retall_normalitzat(imagen, extract_xml_annotation(ann_file), mida)
-        
-        obtenirHoG(c, ppc=(8,8), cpb=(2,2), o = 18)
-
-    return
-
 
 def obtener_datos_y_hog():
     """ Función para obtener los datos, extraer características HoG y guardarlas en un archivo. """
