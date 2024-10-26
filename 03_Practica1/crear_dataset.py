@@ -126,13 +126,6 @@ def obtenir_dadesBiel(carpeta_imatges, carpeta_anotacions, mida=(64, 64)):
             imatges[:, :, idx] = cara_animal
             etiquetes[idx] = 0 if tipus_animal == "cat" else 1
 
-            # Imprimir información adicional para la muestra 3093
-            if nom_fitxer == "Cats_Test3093.xml":
-                print(f"Muestra {idx}: Tipo de animal: {tipus_animal}, Etiqueta asignada: {etiquetes[idx]}")
-                print(f"Contenido del archivo XML para la muestra 3093: {anotacions}")
-                print(nom_fitxer)
-                print(etiquetes[idx])
-
     return imatges, etiquetes
 
 
@@ -271,9 +264,6 @@ def obtener_datos_y_hog():
     carpeta_images = "gatigos/images"  # NO ES POT MODIFICAR
     carpeta_anotacions = "gatigos/annotations"  # NO ES POT MODIFICAR
     mida = (64, 64)  # DEFINEIX LA MIDA, ES RECOMANA COMENÇAR AMB 64x64
-    
-    #imatges, etiquetes = obtenir_dades(carpeta_images, carpeta_anotacions, mida)
-    #np.save("etiquetas.npy", etiquetes)
 
     # Obtener imágenes, etiquetas y listas de nombres de archivos
     imatges, etiquetes, image_files, annotation_files = obtenir_dades(carpeta_images, carpeta_anotacions, mida)
@@ -284,7 +274,7 @@ def obtener_datos_y_hog():
     np.save("annotation_files.npy", annotation_files)
 
     # Generar y guardar características HoG
-    #configuracionHoG(imatges)
+    configuracionHoG(imatges)
 
     return
 
@@ -298,17 +288,12 @@ def train_and_evaluate_fix_model(X_transformed, y_train, X_test_transformed, y_t
 
     # Cálculo de las métricas 'Precision' - 'Recall' - 'F1' - 'Accuracy'
     precision, sensibilidad, f1, exactitud = calcular_metricas(y_test, y_pred)
-    # Realmente accuracy no lo pide.
 
     print(f"Exactitud: {exactitud:.3f}")
     print(f"Precisión: {precision:.3f}")
     print(f"Sensibilidad: {sensibilidad:.3f}")
     print(f"F1: {f1:.3f}\n")
 
-    # Evaluar si el modelo está sobreajustando o subajustando
-    y_train_pred = svm.predict(X_transformed)
-    train_accuracy = accuracy_score(y_train, y_train_pred)
-    test_accuracy = exactitud  # Ya calculada anteriormente
 
     # Evaluar si el modelo está sobreajustando o subajustando
     y_train_pred = svm.predict(X_transformed)
@@ -352,6 +337,11 @@ def construir_tabla_y_grafico(resultados):
     # Crear la tabla comparativa
     df_resultados = pd.DataFrame(resultados, columns=['Modelo', 'Precisión', 'Sensibilidad', 'F1', 'Exactitud'])
     print(df_resultados)
+
+    # Mostrar la tabla de forma adecuada
+    from IPython.display import display 
+    display(df_resultados)  # Usa display para visualizar mejor la tabla en Jupyter
+    
 
     # Crear el gráfico
     ax = df_resultados.set_index('Modelo').plot(kind='bar', figsize=(10, 6))
@@ -403,7 +393,6 @@ def imagenes_Clasificadas(y_test, y_pred, img_test, ann_test, nImagenes=5, kerne
 def main():
 
     """ Ya hemos obtenido los HoG de las imágenes y guardado las características 
-    process_images() --> ¿lo dejo o lo quito?
     obtener_datos_y_hog()
     """
 
@@ -421,9 +410,6 @@ def main():
     scaler = StandardScaler()
     X_transformed = scaler.fit_transform(X_train)
     X_test_transformed = scaler.transform(X_test)
-
-    # Contar número de muestras del conjunto de Test para saber si hay que balancear las clases:
-    contar_muestras(y_test)
 
     """ Ya hemos obtenido los mejores parámetros para cada kernel y los hemos guardado 
     entrenamiento_SVM(caracteristicas, etiquetas)
@@ -464,6 +450,9 @@ def main():
 
     # Crear tabla comparativa y gráfico con los resultados obtenidos:
     resultados = []
+
+    # Contar número de muestras del conjunto de Test para saber si hay que balancear las clases:
+    contar_muestras(y_test)
 
     # Evaluación de los modelos SVM obtenidos con los mejores parámetros
     for nombre, params in modelos:
