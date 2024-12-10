@@ -8,3 +8,5 @@
 15_Mask_RCNN/data
 15_Mask_RCNN/cells jr/
 15_Mask_RCNN/cells_jr.zip
+
+16_SAM/runs/
