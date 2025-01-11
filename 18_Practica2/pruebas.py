@@ -49,6 +49,7 @@ def convert_to_yolo_format(mat_file_path, output_folder, image_width, image_heig
 
 # Example usage
 if __name__ == "__main__":
+    
     # Folder containing class folders
     input_base_folder = "path/to/class_folders"
 
