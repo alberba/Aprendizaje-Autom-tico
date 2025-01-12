@@ -1,3 +1,4 @@
 caracteristiques_hog_ppc4_cpb2_o9.npy filter=lfs diff=lfs merge=lfs -text
 *.pth filter=lfs diff=lfs merge=lfs -text
 18_Practica2/buddha_dalmatian_weights_rcnn.zip filter=lfs diff=lfs merge=lfs -text
+18_Practica2/archivos.zip filter=lfs diff=lfs merge=lfs -text
