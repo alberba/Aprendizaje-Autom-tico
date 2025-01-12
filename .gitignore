@@ -1,5 +1,5 @@
 /data
-/dataPractica
+18_Practica2/dataPractica
 
 14_YOLO/*.pt
 14_YOLO/runs/
@@ -12,7 +12,7 @@
 
 16_SAM/runs/
 
-18_Practica2/BuddhaDalmatian-5/
+18_Practica2/datasets/BuddhaDalmatian-5/
 18_Practica2/runs/
 18_Practica2/dataAux/
 18_Practica2/mat_extracted_txt/
