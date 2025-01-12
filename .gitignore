@@ -11,3 +11,8 @@
 15_Mask_RCNN/cells_jr.zip
 
 16_SAM/runs/
+
+18_Practica2/datasets/BuddhaDalmatian-4/
+18_Practica2/runs/
+18_Practica2/dataAux/
+18_Practica2/mat_extracted_txt/
